@@ -55,10 +55,14 @@ USER nestjs
 # Expose port
 EXPOSE 3001
 
-# Health check
+# Health check - use PORT env var
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3001) + '/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Create startup script
+COPY --chown=nestjs:nodejs start.sh ./
+RUN chmod +x start.sh
 
 # Start application with dumb-init
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
+CMD ["./start.sh"]
