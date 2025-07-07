@@ -22,8 +22,8 @@ ENV DIRECT_URL=$DIRECT_URL
 # Build
 RUN yarn build
 
-#DB Migrations
-RUN npx prisma migrate deploy
+# Copy entrypoint script
+COPY entrypoint.sh ./
+RUN chmod +x entrypoint.sh
 
-# Serve the app
-CMD ["yarn", "start:prod"]
+CMD ["./entrypoint.sh"]
