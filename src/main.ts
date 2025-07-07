@@ -45,15 +45,21 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter(logger));
   app.useGlobalInterceptors(new LoggingInterceptor(logger));
   
-  const port = configService.get<number>('PORT', 3001);
+  // Enhanced port configuration and logging
+  const port = process.env.PORT || configService.get<number>('PORT', 3001);
   
-  await app.listen(configService.get('PORT', '3001'), () =>
-    console.log('App listening on ' + configService.get('PORT', '3001')),
-  );
+  console.log(`🔧 Environment PORT: ${process.env.PORT}`);
+  console.log(`⚙️  Config PORT: ${configService.get<number>('PORT', 3001)}`);
+  console.log(`🎯 Final PORT: ${port}`);
+  console.log(`🌐 Binding to: 0.0.0.0:${port}`);
+  
+  await app.listen(port, '0.0.0.0');
+  
+  console.log(`✅ App successfully listening on 0.0.0.0:${port}`);
   logger.log(`🚀 EzyBookmark API is running on port ${port}`, 'Bootstrap');
 }
 
 bootstrap().catch((error) => {
-  console.error('❌ Failed to start EzyBookmark API:', error);
+  console.log('❌ Failed to start EzyBookmark API:', error);
   process.exit(1);
 });
