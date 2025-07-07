@@ -31,7 +31,4 @@ RUN echo "🔧 Generating Prisma client..." && \
 COPY entrypoint.sh ./
 RUN chmod +x entrypoint.sh
 
-# Add some debug info
-RUN echo "📋 Final container contents:" && ls -la
-
 CMD ["./entrypoint.sh"]
