@@ -27,6 +27,10 @@ RUN echo "🔧 Generating Prisma client..." && \
     echo "✅ Build completed successfully" && \
     ls -la dist/src/
 
+
+# Build
+RUN yarn build
+
 # Copy entrypoint script
 COPY entrypoint.sh ./
 RUN chmod +x entrypoint.sh
