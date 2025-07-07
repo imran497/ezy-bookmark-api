@@ -27,12 +27,8 @@ RUN echo "🔧 Generating Prisma client..." && \
     echo "✅ Build completed successfully" && \
     ls -la dist/src/
 
+#DB Migrations
+RUN npx prisma migrate deploy
 
-# Build
-RUN yarn build
-
-# Copy entrypoint script
-COPY entrypoint.sh ./
-RUN chmod +x entrypoint.sh
-
-CMD ["./entrypoint.sh"]
+# Serve the app
+CMD ["yarn", "start:prod"]
