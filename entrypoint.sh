@@ -25,19 +25,19 @@ echo "node_modules/.prisma/ contents:"
 ls -la node_modules/.prisma/ || echo "❌ node_modules/.prisma/ directory not found"
 
 echo ""
-echo "🗄️ Database migrations status:"
-if npx prisma migrate status; then
-    echo "✅ Migration status check successful"
-else
-    echo "❌ Failed to check migration status - continuing anyway"
-fi
+echo "🗄️ Skipping migration status check (can hang in production)"
+echo "🚀 Starting database migrations with timeout..."
 
-echo ""
-echo "🚀 Starting database migrations..."
-if npx prisma migrate deploy; then
+# Run migration deploy with timeout
+timeout 60 npx prisma migrate deploy
+migration_exit_code=$?
+
+if [ $migration_exit_code -eq 0 ]; then
     echo "✅ Database migrations completed successfully"
+elif [ $migration_exit_code -eq 124 ]; then
+    echo "⏰ Migration timed out after 60 seconds - continuing anyway"
 else
-    echo "❌ Database migrations failed - but continuing to start app"
+    echo "❌ Database migrations failed (exit code: $migration_exit_code) - continuing anyway"
 fi
 
 echo ""
