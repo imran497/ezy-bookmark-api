@@ -1,6 +1,7 @@
 #!/bin/bash
-set -e
 
+echo "🎬 === ENTRYPOINT SCRIPT STARTED ==="
+echo "⏰ Timestamp: $(date)"
 echo "🔍 === CONTAINER DEBUGGING INFORMATION ==="
 echo "📂 Current working directory: $(pwd)"
 echo "📋 Directory contents:"
@@ -15,21 +16,29 @@ echo "DATABASE_URL: ${DATABASE_URL:0:50}... (truncated)"
 echo ""
 echo "📁 Checking important directories:"
 echo "dist/ contents:"
-ls -la dist/ || echo "dist/ directory not found"
+ls -la dist/ || echo "❌ dist/ directory not found"
 
 echo "dist/src/ contents:"
-ls -la dist/src/ || echo "dist/src/ directory not found"
+ls -la dist/src/ || echo "❌ dist/src/ directory not found"
 
 echo "node_modules/.prisma/ contents:"
-ls -la node_modules/.prisma/ || echo "node_modules/.prisma/ directory not found"
+ls -la node_modules/.prisma/ || echo "❌ node_modules/.prisma/ directory not found"
 
 echo ""
 echo "🗄️ Database migrations status:"
-npx prisma migrate status || echo "Failed to check migration status"
+if npx prisma migrate status; then
+    echo "✅ Migration status check successful"
+else
+    echo "❌ Failed to check migration status - continuing anyway"
+fi
 
 echo ""
 echo "🚀 Starting database migrations..."
-npx prisma migrate deploy
+if npx prisma migrate deploy; then
+    echo "✅ Database migrations completed successfully"
+else
+    echo "❌ Database migrations failed - but continuing to start app"
+fi
 
 echo ""
 echo "🎯 Starting application on port: ${PORT:-3001}"

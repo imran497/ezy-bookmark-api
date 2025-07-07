@@ -19,11 +19,19 @@ ARG DIRECT_URL
 ENV DATABASE_URL=$DATABASE_URL
 ENV DIRECT_URL=$DIRECT_URL
 
-# Build
-RUN yarn build
+# Generate Prisma client and build
+RUN echo "🔧 Generating Prisma client..." && \
+    npx prisma generate && \
+    echo "🏗️ Building application..." && \
+    yarn build && \
+    echo "✅ Build completed successfully" && \
+    ls -la dist/src/
 
 # Copy entrypoint script
 COPY entrypoint.sh ./
 RUN chmod +x entrypoint.sh
+
+# Add some debug info
+RUN echo "📋 Final container contents:" && ls -la
 
 CMD ["./entrypoint.sh"]
