@@ -1,8 +1,0 @@
-#!/bin/sh
-set -e
-
-echo "🔄 Running database migrations..."
-npx prisma migrate deploy
-
-echo "🚀 Starting EzyBookmark API..."
-node dist/src/main.js
