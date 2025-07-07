@@ -45,9 +45,11 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter(logger));
   app.useGlobalInterceptors(new LoggingInterceptor(logger));
   
-  const port = process.env.PORT || configService.get<number>('PORT', 3001);
+  const port = configService.get<number>('PORT', 3001);
   
-  await app.listen(port, '0.0.0.0');
+  await app.listen(configService.get('PORT', '3001'), () =>
+    console.log('App listening on ' + configService.get('PORT', '3001')),
+  );
   logger.log(`🚀 EzyBookmark API is running on port ${port}`, 'Bootstrap');
 }
 
