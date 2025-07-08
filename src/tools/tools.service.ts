@@ -356,35 +356,54 @@ export class ToolsService {
   private async extractMetadata(url: string) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
       
       const response = await fetch(url, {
         signal: controller.signal,
         headers: {
-          'User-Agent': 'EzyBookmark/1.0 (+https://ezybookmark.com)',
+          'User-Agent': 'Mozilla/5.0 (compatible; EzyBookmark/1.0; +https://ezybookmark.com)',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'DNT': '1',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
         },
       });
       
       clearTimeout(timeoutId);
 
+      this.logger.log(`Metadata extraction for ${url}: ${response.status} ${response.statusText}`, 'ToolsService');
+
       if (!response.ok) {
+        this.logger.warn(`Failed to fetch ${url}: ${response.status} ${response.statusText}`, 'ToolsService');
         return this.getFallbackMetadata(url);
       }
 
       const html = await response.text();
       
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      const descMatch = html.match(/<meta[^>]*name=["\']description["\'][^>]*content=["\']([^"']+)["\'][^>]*>/i);
-      const faviconMatch = html.match(/<link[^>]*rel=["\'](?:icon|shortcut icon)["\'][^>]*href=["\']([^"']+)["\'][^>]*>/i);
+      // More comprehensive title extraction
+      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i) ||
+                         html.match(/<meta[^>]*property=["\']og:title["\'][^>]*content=["\']([^"']+)["\'][^>]*>/i);
+      
+      // More comprehensive description extraction  
+      const descMatch = html.match(/<meta[^>]*name=["\']description["\'][^>]*content=["\']([^"']+)["\'][^>]*>/i) ||
+                        html.match(/<meta[^>]*property=["\']og:description["\'][^>]*content=["\']([^"']+)["\'][^>]*>/i);
+      
+      // More comprehensive favicon extraction
+      const faviconMatch = html.match(/<link[^>]*rel=["\'](?:icon|shortcut icon|apple-touch-icon)["\'][^>]*href=["\']([^"']+)["\'][^>]*>/i);
 
-      return {
+      const metadata = {
         name: titleMatch ? titleMatch[1].trim() : '',
         description: descMatch ? descMatch[1].trim() : '',
         favicon: faviconMatch ? this.resolveUrl(faviconMatch[1], url) : '',
         tags: [],
       };
+
+      this.logger.log(`Extracted metadata for ${url}: name="${metadata.name}"`, 'ToolsService');
+      return metadata;
     } catch (error) {
-      this.logger.warn(`Failed to extract metadata from ${url}: ${error.message}`, 'ToolsService');
+      this.logger.error(`Failed to extract metadata from ${url}: ${error.message}`, error, 'ToolsService');
       return this.getFallbackMetadata(url);
     }
   }
@@ -451,7 +470,10 @@ export class ToolsService {
   private extractDomainName(url: string): string {
     const domain = this.extractDomain(url);
     const parts = domain.split('.');
-    return parts.length > 1 ? parts[parts.length - 2] : domain;
+    const domainName = parts.length > 1 ? parts[parts.length - 2] : domain;
+    
+    // Capitalize first letter for better presentation
+    return domainName.charAt(0).toUpperCase() + domainName.slice(1);
   }
 
   private resolveUrl(href: string, baseUrl: string): string {
